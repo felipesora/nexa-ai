@@ -1,0 +1,12 @@
+[submodule "nexa-ai-auth-service"]
+	path = nexa-ai-auth-service
+	url = https://github.com/felipesora/nexa-ai-auth-service.git
+[submodule "nexa-ai-task-service"]
+	path = nexa-ai-task-service
+	url = https://github.com/felipesora/nexa-ai-task-service.git
+[submodule "nexa-ai-ai-service"]
+	path = nexa-ai-ai-service
+	url = https://github.com/felipesora/nexa-ai-ai-service.git
+[submodule "nexa-ai-web"]
+	path = nexa-ai-web
+	url = https://github.com/felipesora/nexa-ai-web.git
