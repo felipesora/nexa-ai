@@ -1,0 +1,88 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: nexa-ai-db
+    restart: unless-stopped
+
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
+    ports:
+      - "${MYSQL_PORT}:3306"
+
+    networks:
+      - nexa-network
+
+    volumes:
+      - nexa_mysql_data:/var/lib/mysql
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h localhost -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  auth-service:
+    build:
+      context: ./nexa-ai-auth-service
+      dockerfile: Dockerfile
+    container_name: nexa-ai-auth-service
+    restart: always
+
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      JWT_KEY: ${JWT_KEY}
+
+    ports:
+     - "${AUTH_SERVICE_PORT}:8081"
+
+    networks:
+      - nexa-network
+    
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  task-service:
+    build:
+      context: ./nexa-ai-task-service
+      dockerfile: Dockerfile
+    container_name: nexa-ai-task-service
+    restart: always
+
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      JWT_KEY: ${JWT_KEY}
+
+    ports:
+     - "${TASK_SERVICE_PORT}:8082"
+
+    networks:
+      - nexa-network
+    
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+networks:
+  nexa-network:
+
+volumes:
+  nexa_mysql_data:
