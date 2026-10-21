@@ -80,6 +80,31 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+  
+  gateway-service:
+    build:
+      context: ./nexa-ai-gateway
+      dockerfile: Dockerfile
+    container_name: nexa-ai-gateway
+    restart: always
+
+    environment:
+      USUARIO_SERVICE_URL: ${USUARIO_SERVICE_URL}
+      TASK_SERVICE_URL: ${TASK_SERVICE_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+      JWT_KEY: ${JWT_KEY}
+
+    ports:
+     - "${GATEWAY_PORT}:8080"
+
+    networks:
+      - nexa-network
+    
+    depends_on:
+      auth-service:
+        condition: service_started
+      task-service:
+        condition: service_started
 
 networks:
   nexa-network:

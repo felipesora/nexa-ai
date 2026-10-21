@@ -10,3 +10,6 @@
 [submodule "nexa-ai-web"]
 	path = nexa-ai-web
 	url = https://github.com/felipesora/nexa-ai-web.git
+[submodule "nexa-ai-gateway"]
+	path = nexa-ai-gateway
+	url = https://github.com/felipesora/nexa-ai-gateway.git
