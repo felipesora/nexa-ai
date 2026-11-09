@@ -1,0 +1,8 @@
+CREATE DATABASE IF NOT EXISTS nexa_auth;
+CREATE DATABASE IF NOT EXISTS nexa_task;
+CREATE DATABASE IF NOT EXISTS nexa_ai;
+
+GRANT ALL PRIVILEGES ON nexa_auth.* TO 'nexa_app'@'%';
+GRANT ALL PRIVILEGES ON nexa_task.* TO 'nexa_app'@'%';
+GRANT ALL PRIVILEGES ON nexa_ai.* TO 'nexa_app'@'%';
+FLUSH PRIVILEGES;
