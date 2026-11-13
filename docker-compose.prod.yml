@@ -1,0 +1,88 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: nexa-ai-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    networks:
+      - nexa-network
+    volumes:
+      - nexa_mysql_data:/var/lib/mysql
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  auth-service:
+    image: ${DOCKERHUB_USERNAME}/nexa-ai-auth-service:${AUTH_TAG:-latest}
+    container_name: nexa-ai-auth-service
+    restart: always
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      JWT_KEY: ${JWT_KEY}
+    networks:
+      - nexa-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  task-service:
+    image: ${DOCKERHUB_USERNAME}/nexa-ai-task-service:${TASK_TAG:-latest}
+    container_name: nexa-ai-task-service
+    restart: always
+    environment:
+      TZ: America/Sao_Paulo
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      JWT_KEY: ${JWT_KEY}
+    networks:
+      - nexa-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  gateway-service:
+    image: ${DOCKERHUB_USERNAME}/nexa-ai-gateway:${GATEWAY_TAG:-latest}
+    container_name: nexa-ai-gateway
+    restart: always
+    environment:
+      USUARIO_SERVICE_URL: ${USUARIO_SERVICE_URL}
+      TASK_SERVICE_URL: ${TASK_SERVICE_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+      JWT_KEY: ${JWT_KEY}
+    networks:
+      - nexa-network
+    depends_on:
+      - auth-service
+      - task-service
+
+  web:
+    image: ${DOCKERHUB_USERNAME}/nexa-ai-web:${WEB_TAG:-latest}
+    container_name: nexa-ai-web
+    restart: always
+    ports:
+      - "${WEB_PORT:-80}:80"
+    networks:
+      - nexa-network
+    depends_on:
+      - gateway-service
+
+networks:
+  nexa-network:
+
+volumes:
+  nexa_mysql_data:

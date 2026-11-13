@@ -64,6 +64,7 @@ services:
     restart: always
 
     environment:
+      TZ: America/Sao_Paulo
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
       DB_USER: ${MYSQL_USER}
